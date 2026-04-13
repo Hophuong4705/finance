@@ -477,7 +477,6 @@ private fun MenuRow(icon: ImageVector, label: String, tint: Color = TextMain, on
     )
 }
 
-// ─── 7. HỘP THOẠI ĐỒNG BỘ & THÔNG TIN ─────────────────────────────────────────
 @Composable
 fun SyncDataDialog(onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
