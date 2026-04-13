@@ -1,3 +1,5 @@
+// Hồ Sỹ Phương - 23CNTT3 - Final Project
+
 package com.example.cuoikyltdd.data.local.dao
 
 import androidx.room.Dao
@@ -25,4 +27,6 @@ interface TransactionDao {
 
     @Delete
     suspend fun deleteTransaction(transaction: TransactionEntity)
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAllTransactions()
 }

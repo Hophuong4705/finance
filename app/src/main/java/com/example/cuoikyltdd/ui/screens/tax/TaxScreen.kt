@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,9 +49,10 @@ fun TaxScreen(
     navController: NavController,
     viewModel: TaxViewModel = hiltViewModel()
 ) {
-    var incomeInput     by remember { mutableStateOf("") }
-    var dependentsInput by remember { mutableStateOf("0") }
-    val taxResult by viewModel.taxResult.collectAsState()
+    var incomeInput by remember { mutableStateOf("") }
+    // 🔥 ĐÃ FIX: Chuyển thành số nguyên để dùng nút +/-
+    var dependents  by remember { mutableStateOf(0) }
+    val taxResult   by viewModel.taxResult.collectAsState()
 
     Scaffold(
         containerColor = BgPage,
@@ -72,13 +75,7 @@ fun TaxScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-
-            Text(
-                "Nhập thu nhập và số người phụ thuộc để tính thuế TNCN dự tính.",
-                color = TextSub,
-                fontSize = 13.sp
-            )
-
+            Text("Nhập thu nhập và số người phụ thuộc để tính thuế TNCN dự tính.", color = TextSub, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(20.dp))
 
             // ── Form nhập & Gợi ý ─────────────────────────────────────────────
@@ -108,33 +105,57 @@ fun TaxScreen(
                     visualTransformation = ThousandSeparatorTransformation()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                StyledTextField(
-                    value = dependentsInput,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) dependentsInput = it },
-                    label = "Số người phụ thuộc",
-                    suffix = "người",
-                    keyboardType = KeyboardType.Number
-                )
+                // 🔥 ĐÃ FIX: Giao diện Tăng/Giảm người phụ thuộc
+                Text("Số người phụ thuộc", color = TextSub, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BgPage)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = { if (dependents > 0) dependents-- },
+                        modifier = Modifier.background(BgCard, CircleShape).size(40.dp)
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Giảm", tint = DangerRed)
+                    }
+
+                    Text(
+                        text = "$dependents người",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextMain
+                    )
+
+                    IconButton(
+                        onClick = { dependents++ },
+                        modifier = Modifier.background(BgCard, CircleShape).size(40.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Tăng", tint = TealPrime)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    val income     = incomeInput.toDoubleOrNull() ?: 0.0
-                    val dependents = dependentsInput.toIntOrNull() ?: 0
-                    viewModel.calculateTax(income, dependents)
+                    val income = incomeInput.toDoubleOrNull() ?: 0.0
+                    viewModel.calculateTax(income, dependents) // Truyền thẳng biến Int
                 },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TealPrime)
             ) {
-                Text("PHÂN TÍCH THUẾ", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("PHÂN TÍCH THUẾ", fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 1.sp)
             }
 
-            // ── Hiển thị kết quả ─────────────────────────────────────────────
             taxResult?.let { result ->
                 Spacer(modifier = Modifier.height(24.dp))
                 TaxResultCard(result = result)
@@ -147,6 +168,7 @@ fun TaxScreen(
     }
 }
 
+// ... [Giữ nguyên toàn bộ các component TaxResultCard, TaxBracketCard, ThousandSeparatorTransformation ở dưới] ...
 @Composable
 private fun TaxResultCard(result: com.example.cuoikyltdd.domain.model.TaxResult) {
     val taxRate = if (result.taxableIncome > 0)
@@ -185,7 +207,6 @@ private fun TaxResultCard(result: com.example.cuoikyltdd.domain.model.TaxResult)
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
-            // ĐÃ FIX: Thêm Locale.US để xóa cảnh báo vàng
             Text("Thuế suất thực tế: ${String.format(Locale.US, "%.1f", taxRate)}%", color = TextSub, fontSize = 12.sp)
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -229,8 +250,6 @@ private fun TaxBracketCard() {
         }
     }
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 fun formatCurrency(amount: Double): String {
     val formatter = DecimalFormat("#,###", DecimalFormatSymbols(Locale("vi", "VN")))
@@ -288,7 +307,6 @@ private fun StyledTextField(
         visualTransformation = visualTransformation,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        // ĐÃ FIX: Thêm lại màu viền xanh để ô nhập liệu trông nổi bật hơn
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = TealPrime,
             unfocusedBorderColor = BorderColor
