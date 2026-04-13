@@ -285,8 +285,6 @@ fun rememberBitmapFromUri(uri: Uri?): ImageBitmap? {
     }
     return bitmap
 }
-
-// ─── 5. ĐIỀU HƯỚNG CHÍNH ──────────────────────────────────────────────────────
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
@@ -321,7 +319,6 @@ fun AppNavHost() {
     }
 }
 
-// ─── 6. GIAO DIỆN CHUNG (BOTTOM NAV & TOP BAR) ───────────────────────────────
 data class BottomNavItem(val route: String, val label: String, val selectedIcon: ImageVector, val unselectedIcon: ImageVector)
 
 @Composable
