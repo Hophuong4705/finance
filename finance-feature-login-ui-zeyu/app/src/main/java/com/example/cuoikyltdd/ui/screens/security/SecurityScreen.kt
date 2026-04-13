@@ -65,7 +65,7 @@ fun SecurityScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // ── KHU VỰC 1: BẢO MẬT ──────────────────────────────────────────
+            // ── KHU VỰC: BẢO MẬT ──────────────────────────────────────────
             Text("Bảo mật", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextMain)
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -75,8 +75,6 @@ fun SecurityScreen(navController: NavController) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column {
-                    // 🔥 ĐÃ FIX: Chỉ giữ lại Vân tay và Đổi mật khẩu
-
                     // Dòng Cài đặt Vân tay (Có nút gạt Switch)
                     Row(
                         modifier = Modifier
@@ -128,24 +126,6 @@ fun SecurityScreen(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // ── KHU VỰC 2: GIAO DIỆN ────────────────────────────────────────
-            Text("Giao diện", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextMain)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column {
-                    SecurityRow(Icons.Outlined.ColorLens, "Đổi theme")
-                    HorizontalDivider(color = DividerColor)
-                    SecurityRow(Icons.Outlined.Wallpaper, "Thay ảnh nền cá nhân")
-                }
-            }
-
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
@@ -165,7 +145,6 @@ fun SecurityRow(icon: ImageVector, title: String, onClick: (() -> Unit)? = null)
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, fontSize = 15.sp, color = TextMain, modifier = Modifier.weight(1f))
 
-        // Mũi tên điều hướng ở bên phải
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = RedMB)
     }
 }
