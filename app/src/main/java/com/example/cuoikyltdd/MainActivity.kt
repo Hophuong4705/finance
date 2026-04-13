@@ -49,7 +49,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-// ─── 1. KÉT SẮT LƯU TRỮ VĨNH VIỄN ───────────────────────────────────────────
 object SharedPrefsHelper {
     private lateinit var prefs: SharedPreferences
 
@@ -111,7 +110,6 @@ object SharedPrefsHelper {
     }
 }
 
-// ─── 2. QUẢN LÝ DỮ LIỆU TOÀN CỤC TRÊN RAM ───────────────────────────────────
 object AppGlobalState {
     var isLoggedIn by mutableStateOf(false)
     var userName by mutableStateOf("")
