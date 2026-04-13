@@ -1,4 +1,3 @@
-
 package com.example.cuoikyltdd.ui.theme
 
 import android.app.Activity
@@ -24,13 +23,23 @@ val BrandGreen = Color(0xFF66BB6A)
 val BgPageLight = Color(0xFFF0F4F8)
 val BgPageDark = Color(0xFF121212)
 
+// 🔥 ĐÃ THÊM: Màu chữ cường độ cao để chống mờ nhòe (Slate Colors)
+val TextMainLight = Color(0xFF0F172A) // Đen đậm, bao nét
+val TextSubLight  = Color(0xFF334155) // Xám vừa, dùng cho chữ gợi ý (Placeholder)
+val TextMainDark  = Color(0xFFF8FAFC) // Trắng sáng
+val TextSubDark   = Color(0xFFCBD5E1) // Xám sáng
+
 private val DarkColorScheme = darkColorScheme(
     primary = TealLight,
     secondary = BrandGreen,
     tertiary = TealDark,
     background = BgPageDark,
     surface = Color(0xFF1E1E1E),
-    onPrimary = Color.White
+    onPrimary = Color.White,
+    // 🔥 Ép màu chữ hiển thị rõ ràng trên nền tối
+    onBackground = TextMainDark,
+    onSurface = TextMainDark,
+    onSurfaceVariant = TextSubDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -39,7 +48,11 @@ private val LightColorScheme = lightColorScheme(
     tertiary = TealLight,
     background = BgPageLight,
     surface = Color.White,
-    onPrimary = Color.White
+    onPrimary = Color.White,
+    // 🔥 ĐÃ FIX: Ép hệ thống dùng màu đen đậm cho mọi Text mặc định trên nền sáng
+    onBackground = TextMainLight,
+    onSurface = TextMainLight,
+    onSurfaceVariant = TextSubLight
 )
 
 @Composable
@@ -66,14 +79,13 @@ fun FinanceMeTheme(
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
 
-            // Ép màu chữ trên thanh trạng thái (giờ, pin, wifi) luôn là màu trắng (để nổi bật trên nền Xanh ngọc)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Lấy từ file Type.kt có sẵn của bạn
+        typography = Typography,
         content = content
     )
 }

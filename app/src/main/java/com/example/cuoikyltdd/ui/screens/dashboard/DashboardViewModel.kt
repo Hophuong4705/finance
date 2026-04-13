@@ -1,5 +1,3 @@
-// Hồ Sỹ Phương - 23CNTT3 - Final Project
-
 package com.example.cuoikyltdd.ui.screens.dashboard
 
 import android.content.Context
@@ -10,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cuoikyltdd.AppGlobalState
+import com.example.cuoikyltdd.SharedPrefsHelper
 import com.example.cuoikyltdd.data.local.entity.TransactionEntity
 import com.example.cuoikyltdd.data.remote.ApiService
 import com.example.cuoikyltdd.data.remote.NotificationDto
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import com.example.cuoikyltdd.SharedPrefsHelper
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -92,7 +90,6 @@ class DashboardViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     Log.d("SYNC_NOTIF", "🔥 Đã đẩy thành công thông báo lên Mongoose!")
                 } else if (response.code() == 401) {
-                    // 🔥 Bắt trực tiếp mã 401 từ Response
                     handleForceLogout()
                 }
             } catch (e: Exception) {
@@ -105,6 +102,9 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    // ==================================================================================
+    // 🔥 ĐÃ FIX: THÊM GIAO DỊCH
+    // ==================================================================================
     fun addTransaction(amount: Double, note: String, type: String, source: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -114,13 +114,27 @@ class DashboardViewModel @Inject constructor(
                     source   = source,
                     type     = type,
                     note     = note,
-                    isSynced = false
+                    isSynced = false // Đánh dấu false để syncNow() nhặt lên đẩy đi
                 )
 
+                // 1. Lưu vào SQLite (Room)
                 repository.addTransaction(entity)
                 Log.d("DB_SUCCESS", "Đã lưu giao dịch vào máy!")
 
+                // 2. ÉP ĐỒNG BỘ NGAY TRONG LUỒNG IO (Đảm bảo Room đã lưu xong mới đẩy)
+                syncNow()
+
+                // 3. Xử lý Giao diện & Đẩy Log cho Mongoose
+                val sign = if (type == "INCOME") "+" else "-"
+                val fmt = java.text.DecimalFormat("#,###").format(amount)
+
                 withContext(Dispatchers.Main) {
+                    // 🔥 QUAN TRỌNG: Thêm vào State để Mongoose nhận được nhật ký (Log)
+                    AppGlobalState.addNotification(
+                        "✅ Đã thêm giao dịch: $source",
+                        "Biến động: $sign${fmt}đ"
+                    )
+
                     NotificationHelper.pushTransaction(
                         context = context,
                         source  = source,
@@ -128,8 +142,6 @@ class DashboardViewModel @Inject constructor(
                         type    = type,
                         note    = note.ifBlank { source }
                     )
-
-                    syncNow()
                 }
             } catch (e: Exception) {
                 Log.e("DB_CRASH", "Lỗi khi lưu vào máy: ${e.message}")
@@ -137,23 +149,42 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    // ==================================================================================
+    // 🔥 ĐÃ FIX: XÓA GIAO DỊCH
+    // ==================================================================================
     fun deleteTransaction(transaction: TransactionEntity) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // 1. Xóa trong Room và gọi API xóa trên Mongoose (Xử lý bên trong Repository)
                 repository.deleteTransaction(transaction)
 
+                val amountFmt = java.text.DecimalFormat("#,###").format(transaction.amount)
+
+                // 2. Ghi nhận Log vào AppGlobalState & Báo ra màn hình
                 withContext(Dispatchers.Main) {
-                    val amountFmt = java.text.DecimalFormat("#,###").format(transaction.amount)
+                    // 🔥 Đẩy hành động xóa vào State để đẩy lên MongoDB
+                    AppGlobalState.addNotification(
+                        "🗑️ Đã xóa giao dịch",
+                        "${transaction.source} — ${amountFmt}đ"
+                    )
+
                     NotificationHelper.pushSimple(
                         context = context,
                         title   = "🗑️ Đã xóa giao dịch",
                         message = "${transaction.source} — ${amountFmt}đ"
                     )
-
-                    syncNotificationsToCloud()
                 }
+
+                // 3. Đồng bộ lại để Cloud ghi nhận thay đổi
+                syncNow()
+
             } catch (e: Exception) {
-                Log.e("DB_CRASH", "Lỗi khi xóa khỏi máy: ${e.message}")
+                // 🔥 ĐÃ FIX: Bắt mã 401 để kích hoạt tự hủy nếu Ghost User cố tình xóa dữ liệu
+                if (e.message?.contains("401") == true || e.message?.contains("ACCOUNT_DELETED") == true) {
+                    handleForceLogout()
+                } else {
+                    Log.e("DB_CRASH", "Lỗi khi xóa khỏi máy: ${e.message}")
+                }
             }
         }
     }
@@ -187,7 +218,6 @@ class DashboardViewModel @Inject constructor(
             val requestBody = mapOf("oldPassword" to oldPass, "newPassword" to newPass)
             val response = apiService.changePassword(requestBody)
 
-            // Chỉ cần check isSuccessful là đủ 100% an toàn (Vì sai pass Server sẽ trả về lỗi 400)
             response.isSuccessful
 
         } catch (e: Exception) {
