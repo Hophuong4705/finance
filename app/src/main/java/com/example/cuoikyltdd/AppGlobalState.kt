@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class AppNotification(
     val title:   String,
@@ -36,10 +39,13 @@ object AppGlobalState {
     }
 
     fun addNotification(title: String, message: String) {
-        val time = java.text.SimpleDateFormat(
-            "HH:mm dd/MM", java.util.Locale.getDefault()
-        ).format(java.util.Date())
+        // 🔥 NÂNG CẤP: Màng lọc chống Spam (Chặn các thông báo giống hệt nhau bị gọi đúp)
+        val isSpam = notifications.take(3).any {
+            it.title == title && it.message == message
+        }
+        if (isSpam) return
 
+        val time = SimpleDateFormat("HH:mm dd/MM", Locale.getDefault()).format(Date())
         val notif = AppNotification(title, message, time, false)
 
         notifications.add(0, notif)
@@ -57,16 +63,21 @@ object AppGlobalState {
     }
 
     fun markAllRead() {
+        var isChanged = false
         notifications.forEachIndexed { i, n ->
-            if (!n.isRead) notifications[i] = n.copy(isRead = true)
+            if (!n.isRead) {
+                notifications[i] = n.copy(isRead = true)
+                isChanged = true
+            }
         }
-        saveToPrefs()
+        if (isChanged) saveToPrefs()
     }
 
-    // 🔥 ĐÃ THÊM: Hàm xóa 1 thông báo và cập nhật xuống bộ nhớ máy ngay lập tức
+    // 🔥 Hàm xóa 1 thông báo và cập nhật xuống bộ nhớ máy ngay lập tức
     fun removeNotification(notif: AppNotification) {
-        notifications.remove(notif)
-        saveToPrefs()
+        if (notifications.remove(notif)) {
+            saveToPrefs()
+        }
     }
 
     // 🔥 HÀM NÀY DÙNG ĐỂ DỌN RÁC (USER MA HOẶC ẤN NÚT XÓA TẤT CẢ)
@@ -79,16 +90,21 @@ object AppGlobalState {
 
     private fun saveToPrefs() {
         if (!::prefs.isInitialized) return
-        val arr = JSONArray()
-        notifications.forEach { n ->
-            arr.put(JSONObject().apply {
-                put("title",   n.title)
-                put("message", n.message)
-                put("time",    n.time)
-                put("isRead",  n.isRead)
-            })
+        try {
+            val arr = JSONArray()
+            notifications.forEach { n ->
+                val obj = JSONObject().apply {
+                    put("title",   n.title)
+                    put("message", n.message)
+                    put("time",    n.time)
+                    put("isRead",  n.isRead)
+                }
+                arr.put(obj)
+            }
+            prefs.edit().putString(KEY_NOTIFS, arr.toString()).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        prefs.edit().putString(KEY_NOTIFS, arr.toString()).apply()
     }
 
     private fun loadFromPrefs() {

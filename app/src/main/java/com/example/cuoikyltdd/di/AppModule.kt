@@ -1,4 +1,3 @@
-// Hồ Sỹ Phương - 23CNTT3 - Final Project
 package com.example.cuoikyltdd.di
 
 import android.content.Context
