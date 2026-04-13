@@ -1,4 +1,3 @@
-
 package com.example.cuoikyltdd.di
 
 import com.example.cuoikyltdd.data.remote.ApiService
@@ -16,7 +15,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://10.242.131.118:3000/api/"
+    private const val BASE_URL = "http://192.168.1.49:3000/api/"
 
     @Provides
     @Singleton

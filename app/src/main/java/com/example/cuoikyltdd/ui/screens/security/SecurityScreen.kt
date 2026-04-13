@@ -75,14 +75,7 @@ fun SecurityScreen(navController: NavController) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column {
-                    SecurityRow(Icons.Outlined.PhonelinkSetup, "Quản lý thiết bị truy cập")
-                    HorizontalDivider(color = DividerColor)
-
-                    SecurityRow(Icons.Outlined.VpnKey, "Thiết lập Digital OTP")
-                    HorizontalDivider(color = DividerColor)
-
-                    SecurityRow(Icons.Outlined.Face, "Thiết lập xác thực khuôn mặt")
-                    HorizontalDivider(color = DividerColor)
+                    // 🔥 ĐÃ FIX: Chỉ giữ lại Vân tay và Đổi mật khẩu
 
                     // Dòng Cài đặt Vân tay (Có nút gạt Switch)
                     Row(
@@ -124,7 +117,7 @@ fun SecurityScreen(navController: NavController) {
                     }
                     HorizontalDivider(color = DividerColor)
 
-                    // 🔥 DÒNG ĐỔI MẬT KHẨU MỚI: Bấm vào sẽ bay sang trang đổi mật khẩu
+                    // Dòng Đổi mật khẩu
                     SecurityRow(
                         icon = Icons.Outlined.LockReset,
                         title = "Đổi mật khẩu",
