@@ -62,29 +62,56 @@ Dự án áp dụng cơ chế **Single Source of Truth** (SSOT), trong đó `Roo
 ## 🗄️ Cấu trúc Cơ sở dữ liệu (Database Schema)
 
 ### 1. MongoDB (Cloud)
-**Collection `users`:**
-- `_id`: ObjectId
-- `name`: String
-- `email`: String (Unique)
-- `password`: String (Hashed)
-- `avatarUri`: String
+** Collection users:
 
-**Collection `transactions`:**
-- `_id`: ObjectId
-- `userId`: ObjectId (Ref -> users)
-- `amount`: Number
-- `type`: String (Enum: "INCOME", "EXPENSE")
-- `source`: String (MB Bank, MoMo, Tiền mặt...)
-- `note`: String
-- `date`: Number (Timestamp - Long)
-- `isSynced`: Boolean
+_id: ObjectId
+
+name: String
+
+email: String (Unique)
+
+password: String (Hashed)
+
+avatarUri: String
+
+** Collection transactions:
+
+_id: ObjectId
+
+userId: ObjectId (Ref -> users)
+
+amount: Number
+
+type: String (Enum: "INCOME", "EXPENSE")
+
+source: String (MB Bank, MoMo, Tiền mặt...)
+
+note: String
+
+date: Number (Timestamp - Long)
+
+isSynced: Boolean
+
+** Collection notifications:
+
+_id: ObjectId
+
+userId: ObjectId (Ref -> users)
+
+title: String (Tiêu đề thông báo)
+
+message: String (Nội dung chi tiết biến động)
+
+time: String (Thời gian định dạng "HH:mm dd/MM")
+
+isRead: Boolean (Trạng thái đã đọc hay chưa)
 
 ### 2. Room Database (Local Android)
-**Table `transactions_table`:**
-Bám sát cấu trúc MongoDB nhưng tối ưu cho truy vấn Local:
-- `id`: PrimaryKey (Auto Generate)
-- `amount`, `type`, `source`, `note`, `date`
-- `isSynced`: Boolean (Đóng vai trò quyết định luồng đồng bộ API)
+Table transactions_table:
+Lưu trữ giao dịch tương tự MongoDB phục vụ cơ chế Offline-first.
+
+Table notifications_table:
+Lưu trữ nhật ký thông báo cục bộ để hiển thị ngay lập tức khi người dùng mở màn hình Thông báo.
 
 ---
 
